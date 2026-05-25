@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>House Price Predictor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0d0f1a; --card: #141827; --border: #222840;
+    --accent: #4f8ef7; --accent2: #7c5cfc; --gold: #f4c542;
+    --text: #e8eaf0; --muted: #6b7394;
+    --success: #34d39a; --error: #f56565;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+  }
+  header p { color: var(--muted); margin-top: 0.5rem; font-size: 1.05rem; }
+
+  .stats-bar {
+    display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
+  }
+  .stat {
+    flex: 1; min-width: 140px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem; font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+
+  input, select {
+    background: #0d0f1a; border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px;
+    padding: 0.65rem 0.9rem; font-size: 0.95rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  select option { background: #141827; }
+
+  .btn {
+    width: 100%; padding: 1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; margin-top: 1.5rem;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #result {
+    display: none;
+    background: linear-gradient(135deg, #0f1e3a, #160e2e);
+    border: 1px solid var(--accent2);
+    border-radius: 16px; padding: 2rem;
+    margin-top: 1.5rem; text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-label { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .result-price {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -1px;
+  }
+  .result-range {
+    color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;
+  }
+  .result-range span { color: var(--text); }
+
+  #error-box {
+    display: none;
+    background: rgba(245,101,101,0.1);
+    border: 1px solid var(--error);
+    border-radius: 10px; padding: 1rem;
+    margin-top: 1rem; color: var(--error);
+    font-size: 0.9rem;
+  }
+
+  .model-compare {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+  }
+  @media (max-width: 600px) { .model-compare { grid-template-columns: 1fr; } }
+
+  .model-card {
+    background: #0d0f1a; border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; text-align: center;
+  }
+  .model-card.best { border-color: var(--success); }
+  .model-name { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .model-r2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--text);
+  }
+  .model-card.best .model-r2 { color: var(--success); }
+  .model-badge {
+    display: inline-block;
+    background: var(--success); color: #0d0f1a;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px; margin-top: 4px;
+  }
+
+  .feat-bar { margin-bottom: 0.7rem; }
+  .feat-label { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 3px; }
+  .feat-label span:last-child { color: var(--accent); }
+  .feat-track { background: #0d0f1a; border-radius: 4px; height: 6px; }
+  .feat-fill { height: 6px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🏠 House Price Predictor</h1>
+    <p>ML-powered property valuation using Gradient Boosting</p>
+  </header>
+
+  <!-- Stats Bar -->
+  {% if metadata %}
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-value">{{ metadata.get('all_results', {}).get(metadata.get('best_model',''), {}).get('R2', '—') }}</div>
+      <div class="stat-label">R² Score</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ metadata.get('test_size', '—') }}</div>
+      <div class="stat-label">Test Samples</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ metadata.get('all_results', {}).get(metadata.get('best_model',''), {}).get('MAPE', '—') }}%</div>
+      <div class="stat-label">Avg Error</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ metadata.get('features', [])|length }}</div>
+      <div class="stat-label">Features</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Prediction Form -->
+  <div class="card">
+    <h2>📐 Property Details</h2>
+    <div class="grid">
+      <div class="field">
+        <label>Area (sqft)</label>
+        <input type="number" id="area_sqft" placeholder="e.g. 1200" min="100" max="10000" value="1200"/>
+      </div>
+      <div class="field">
+        <label>Bedrooms</label>
+        <input type="number" id="bedrooms" placeholder="e.g. 3" min="1" max="10" value="3"/>
+      </div>
+      <div class="field">
+        <label>Bathrooms</label>
+        <input type="number" id="bathrooms" placeholder="e.g. 2" min="1" max="10" value="2"/>
+      </div>
+      <div class="field">
+        <label>Age (years)</label>
+        <input type="number" id="age_years" placeholder="e.g. 5" min="0" max="100" value="5"/>
+      </div>
+      <div class="field">
+        <label>Floor Number</label>
+        <input type="number" id="floor" placeholder="e.g. 4" min="0" max="50" value="4"/>
+      </div>
+      <div class="field">
+        <label>Parking Spaces</label>
+        <input type="number" id="parking_spaces" placeholder="e.g. 1" min="0" max="5" value="1"/>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <select id="location">
+          {% for loc in locations %}
+          <option value="{{ loc }}" {% if loc == 'City Center' %}selected{% endif %}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Property Type</label>
+        <select id="property_type">
+          {% for pt in property_types %}
+          <option value="{{ pt }}" {% if pt == 'Apartment' %}selected{% endif %}>{{ pt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button class="btn" id="predict-btn" onclick="runPrediction()">
+      🔮 Predict Price
+    </button>
+    <div id="error-box"></div>
+    <div id="result">
+      <div class="result-label">Estimated Market Value</div>
+      <div class="result-price" id="result-price">₹0</div>
+      <div class="result-range">
+        Range: <span id="result-lower">—</span> – <span id="result-upper">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Comparison -->
+  {% if metadata and metadata.get('all_results') %}
+  <div class="card">
+    <h2>🤖 Model Comparison</h2>
+    <div class="model-compare">
+      {% for name, m in metadata.get('all_results', {}).items() %}
+      <div class="model-card {% if name == metadata.get('best_model') %}best{% endif %}">
+        <div class="model-name">{{ name }}</div>
+        <div class="model-r2">{{ m.get('R2', '—') }}</div>
+        <div style="font-size:0.78rem; color: var(--muted); margin-top:4px;">MAPE: {{ m.get('MAPE','—') }}%</div>
+        {% if name == metadata.get('best_model') %}<div class="model-badge">✓ BEST</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Feature Importance -->
+  {% if metadata and metadata.get('feature_importance') %}
+  <div class="card">
+    <h2>🔍 Feature Importance</h2>
+    {% for feat, imp in metadata.get('feature_importance', {}).items() %}
+    <div class="feat-bar">
+      <div class="feat-label">
+        <span>{{ feat }}</span>
+        <span>{{ "%.1f"|format(imp * 100) }}%</span>
+      </div>
+      <div class="feat-track">
+        <div class="feat-fill" style="width: {{ "%.1f"|format(imp * 100) }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <footer>House Price Predictor · ML Internship Project · Month 4</footer>
+</div>
+
+<script>
+async function runPrediction() {
+  const btn = document.getElementById('predict-btn');
+  const errBox = document.getElementById('error-box');
+  const result = document.getElementById('result');
+  errBox.style.display = 'none';
+  result.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = '⏳ Predicting...';
+
+  const data = {
+    area_sqft: parseFloat(document.getElementById('area_sqft').value),
+    bedrooms: parseInt(document.getElementById('bedrooms').value),
+    bathrooms: parseInt(document.getElementById('bathrooms').value),
+    age_years: parseInt(document.getElementById('age_years').value),
+    floor: parseInt(document.getElementById('floor').value),
+    parking_spaces: parseInt(document.getElementById('parking_spaces').value),
+    location: document.getElementById('location').value,
+    property_type: document.getElementById('property_type').value,
+  };
+
+  try {
+    const resp = await fetch('/api/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const json = await resp.json();
+
+    if (json.success) {
+      document.getElementById('result-price').textContent = json.prediction_formatted;
+      document.getElementById('result-lower').textContent = json.lower_formatted;
+      document.getElementById('result-upper').textContent = json.upper_formatted;
+      result.style.display = 'block';
+    } else {
+      errBox.innerHTML = '⚠️ ' + json.errors.join('<br>⚠️ ');
+      errBox.style.display = 'block';
+    }
+  } catch (e) {
+    errBox.innerHTML = '⚠️ Network error: ' + e.message;
+    errBox.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔮 Predict Price';
+}
+</script>
+</body>
+</html>
