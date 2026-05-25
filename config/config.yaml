@@ -1,0 +1,59 @@
+# House Price Predictor - Project Configuration
+
+data:
+  raw_path: data/house_prices.csv
+  test_size: 0.2
+  random_state: 42
+  outlier_quantile_low: 0.01
+  outlier_quantile_high: 0.99
+
+features:
+  numeric:
+    - area_sqft
+    - bedrooms
+    - bathrooms
+    - age_years
+    - floor
+    - parking_spaces
+    - total_rooms
+    - bath_bed_ratio
+    - is_high_floor
+  categorical:
+    - location
+    - property_type
+    - age_category
+    - area_category
+  target: price
+
+models:
+  ridge:
+    alpha: 100
+  random_forest:
+    n_estimators: 200
+    max_depth: 10
+    min_samples_split: 5
+    random_state: 42
+    n_jobs: -1
+  gradient_boosting:
+    n_estimators: 200
+    max_depth: 4
+    learning_rate: 0.05
+    subsample: 0.8
+    random_state: 42
+
+evaluation:
+  cv_folds: 5
+  metrics:
+    - MAE
+    - RMSE
+    - R2
+    - MAPE
+
+model_output:
+  path: models/best_model.pkl
+  metadata_path: models/metadata.json
+
+app:
+  host: 0.0.0.0
+  port: 5000
+  debug: true
