@@ -1,0 +1,60 @@
+{
+  "best_model": "Gradient Boosting",
+  "trained_at": "2026-05-25T04:26:42.569678",
+  "train_size": 235,
+  "test_size": 59,
+  "features": [
+    "area_sqft",
+    "bedrooms",
+    "bathrooms",
+    "age_years",
+    "floor",
+    "parking_spaces",
+    "total_rooms",
+    "bath_bed_ratio",
+    "is_high_floor",
+    "location",
+    "property_type",
+    "age_category",
+    "area_category"
+  ],
+  "all_results": {
+    "Ridge Regression": {
+      "MAE": 2407747.06,
+      "RMSE": 3083269.06,
+      "R2": 0.6839,
+      "MAPE": 24.62,
+      "CV_R2_mean": 0.6355,
+      "CV_R2_std": 0.0382
+    },
+    "Random Forest": {
+      "MAE": 1474247.45,
+      "RMSE": 1930837.15,
+      "R2": 0.876,
+      "MAPE": 15.29,
+      "CV_R2_mean": 0.8519,
+      "CV_R2_std": 0.0219
+    },
+    "Gradient Boosting": {
+      "MAE": 841839.28,
+      "RMSE": 1228632.87,
+      "R2": 0.9498,
+      "MAPE": 8.15,
+      "CV_R2_mean": 0.9265,
+      "CV_R2_std": 0.0253
+    }
+  },
+  "feature_importance": {
+    "area_sqft": 0.39377,
+    "property_type_Studio": 0.21436,
+    "location_Rural": 0.07211,
+    "property_type_Villa": 0.06228,
+    "location_City Center": 0.05616,
+    "total_rooms": 0.04479,
+    "property_type_Apartment": 0.03345,
+    "bedrooms": 0.02722,
+    "bathrooms": 0.02661,
+    "property_type_Independent House": 0.01847
+  },
+  "model_path": "/home/claude/house_price_ml/models/best_model.pkl"
+}
